@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+# Author: Henrik Cederblad (h.cederblad@gmail.com)
+# Version: 1.0.0
+# Modified date: 2016-09-24
+# Desc: This script renews your macOS Wi-Fi network IP address
+# Note: In order for this script to run as a command, it needs to
+# be made executable: `cd` to dir of this script, and then $ chmod +x ./newip
+
+
+# Check for root user privileges and inform about password if needed
+if sudo -n true 2>/dev/null; then
+  # We got sudo"
+  :
+else
+  # We don't have sudo
+  if [[ $EUID -ne 0 ]]; then
+    echo -e "This program (`basename "$0"`) needs to be run as root user.
+Please enter your root password and press Return.\n"
+  fi
+fi
+
+oldIP=`ipconfig getifaddr en1`
+
+sudo networksetup -setbootp Wi-Fi &&
+sudo networksetup -setdhcp Wi-Fi
+
+# Wait until IP change kicks in
+sleep 10s  # Not fool-proof: Better to somehow implement a proper check
+           # for `networksetup` to finish before getting new IP ...
+newIP=`ipconfig getifaddr en1`
+
+echo "Your IP was previously $oldIP and has now been changed to $newIP."
